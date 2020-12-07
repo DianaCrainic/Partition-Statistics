@@ -1,15 +1,14 @@
-from matplotlib import pyplot as plt
+from cutecharts.charts import Pie
+from cutecharts.components import Page
 
-ext = {'exe': 3, 'ini': 1, 'jpg': 21, 'mp3': 2, 'png': 1, 'txt': 1, 'zip': 3}
 
-# Creating dataset
-extensions = ext.keys()
+def pie_radius():
+    chart = Pie("Number of extension files ")
+    chart.set_options(labels=['exe', 'ini', 'jpg', 'mp3', 'png', 'txt', 'zip'], inner_radius=0)
+    chart.add_series([3, 1, 21, 2, 1, 1, 3])
+    return chart
 
-data = ext.values()
 
-# Creating plot
-fig = plt.figure(figsize=(7, 6))
-plt.pie(data, labels=extensions)
-
-# show plot
-plt.show()
+page = Page()
+page.add(pie_radius())
+page.render()
