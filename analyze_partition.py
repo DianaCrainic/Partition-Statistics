@@ -3,64 +3,83 @@ import os
 import pprint
 import sys
 
-import matplotlib.pyplot as plt
-import numpy as np
+from cutecharts.charts import Bar
+from cutecharts.charts import Pie
+from cutecharts.components import Page
 
 
-# def create_pie_chart(extension_dict):
-#     keys = extension_dict.keys()
-#     values = extension_dict.values()
-#
-#     fig1, ax1 = plt.subplots()
-#     ax1.pie(values, labels=keys, autopct='%1.1f%%', startangle=90)
-#     ax1.axis('equal')
-#
-#     # Show graphic
-#     plt.show()
-#
-#
-# def create_bar_chart(dictionary_of_dir_files):
-#     keys = dictionary_of_dir_files.keys()
-#     values = dictionary_of_dir_files.values()
-#
-#     y_pos = np.arange(len(values))
-#     plt.bar(y_pos, values)
-#     plt.xticks(y_pos, keys)
-#
-#     plt.show()
-
-def create_charts(dictionary_of_dir_files, extension_dict, converted_file_sizes):
-    # Pie chart
-    keys = dictionary_of_dir_files.keys()
-    values = dictionary_of_dir_files.values()
-
-    fig1, ax1 = plt.subplots()
-    ax1.pie(values, labels=keys, autopct='%1.1f%%', startangle=90)
-    ax1.axis('equal')
-
-    # Pie chart
-    keys = extension_dict.keys()
-    values = extension_dict.values()
-
-    fig1, ax1 = plt.subplots()
-    ax1.pie(values, labels=keys, autopct='%1.1f%%', startangle=90)
-    ax1.axis('equal')
+def create_chart_dir_files(dictionary_of_dir_files):
+    labels = list(dictionary_of_dir_files.keys())
+    values = list(dictionary_of_dir_files.values())
+    chart = Pie("The chart for the number of directories and files")
+    chart.set_options(labels=labels, inner_radius=0)
+    chart.add_series(values)
+    return chart
 
 
-    # Barchart
-    # keys = converted_file_sizes.keys()
-    # values = converted_file_sizes.values()
-    # converted_values = list(values)
-    # for i in range(len(converted_values)):
-    #     new_value = convert_size(converted_values[i])
-    #     converted_values[i] = new_value
-    #
-    # y_pos = np.arange(len(converted_values))
-    # plt.bar(y_pos, converted_values)
-    # plt.xticks(y_pos, keys)
+def create_chart_extension_dict(extension_dict):
+    labels = list(extension_dict.keys())
+    values = list(extension_dict.values())
+    chart = Pie("The chart for the number of file extensions")
+    chart.set_options(labels=labels, inner_radius=0)
+    chart.add_series(values)
+    return chart
 
-    # Show graphic
-    plt.show()
+
+def create_chart_file_size_dict(file_size_dict):
+    labels = list(file_size_dict.keys())
+    values = list(file_size_dict.values())
+    chart = Bar("Bar chart")
+    chart.set_options(labels=labels, x_label="Extensions", y_label="counter")
+    chart.add_series("The number", values)
+    return chart
+
+
+def number_of_elements(number_of_directories, directories, number_of_files, files):
+    number_of_directories += len(directories)
+    number_of_files += len(files)
+    return number_of_directories, number_of_files
+
+
+def print_number_of_elements(dictionary_of_dir_files):
+    print("Number of directories: {}".format(list(dictionary_of_dir_files.values())[0]))
+    print("Number of files: {}".format(list(dictionary_of_dir_files.values())[1]))
+    print()
+
+
+def get_extensions(extension, extensions, extension_dict):
+    extensions.add(extension)
+    if extension not in extension_dict.keys():
+        extension_dict[extension] = 1
+    else:
+        extension_dict[extension] += 1
+
+    return extensions, extension_dict
+
+
+def print_extensions_info(extensions, extension_dict):
+    print("The sorted extensions are: ")
+    pprint.pprint(sorted(extensions))
+    print()
+    print("The dictionary of extensions is: ")
+    pprint.pprint(extension_dict)
+    print()
+
+
+def get_file_sizes(full_path, extension, file_size_dict):
+    file_size = os.path.getsize(full_path)
+    if extension not in file_size_dict.keys():
+        print("Extension {}, file_size {}".format(extension, file_size))
+        file_size_dict[extension] = file_size
+    else:
+        print("Extension {}, file_size {}".format(extension, file_size))
+        file_size_dict[extension] += file_size
+    return file_size_dict
+
+
+def print_file_sizes_info(file_size_dict):
+    print("The dictionary of files with their sizes is: ")
+    pprint.pprint(file_size_dict)
 
 
 def convert_size(size_in_bytes):
@@ -73,60 +92,35 @@ def convert_size(size_in_bytes):
     return "%.2f %s" % (result, size_name[i])
 
 
-def partition_analysis(partition):
+def partition_analysis(partition_name):
     dictionary_of_dir_files = {}
     extensions = set()
     extension_dict = {}
     file_size_dict = {}
     number_of_files = 0
     number_of_directories = 0
-    converted_file_sizes = {}
 
-    for (root, directories, files) in os.walk(partition):
+    for (root, directories, files) in os.walk(partition_name):
 
-        number_of_directories += len(directories)
-        number_of_files += len(files)
+        number_of_directories, number_of_files = number_of_elements(number_of_directories, directories, number_of_files,
+                                                                    files)
         dictionary_of_dir_files = {'directories': number_of_directories, 'files': number_of_files}
 
         for file_name in files:
+            extension = file_name.split(".")[-1]
+            extensions, extension_dict = get_extensions(extension, extensions, extension_dict)
 
             full_path = os.path.abspath(os.path.join(root, file_name))
-            extension = file_name.split(".")[-1]
-            extensions.add(extension)
+            file_size_dict = get_file_sizes(full_path, extension, file_size_dict)
 
-            if extension not in extension_dict.keys():
-                extension_dict[extension] = 1
-            else:
-                extension_dict[extension] += 1
+    print_number_of_elements(dictionary_of_dir_files)
+    print_extensions_info(extensions, extension_dict)
+    print_file_sizes_info(file_size_dict)
 
-            file_size = os.path.getsize(full_path)
-            # file_size = convert_size(file_size)
-            if extension not in file_size_dict.keys():
-                file_size_dict[extension] = file_size
-            else:
-                file_size_dict[extension] += file_size
-
-            # converted_file_sizes ={}
-            # for key, value in file_size_dict.items():
-            #     value = convert_size(float(value))
-            #     converted_file_sizes[key] = value
-
-            # file_size_dict[file_name] = file_size
-
-    print("Number of directories: {}".format(number_of_directories))
-    print("Number of files: {}".format(number_of_files))
-    print()
-
-    print("The sorted extensions are: ")
-    pprint.pprint(sorted(extensions))
-    print()
-    print("The dictionary of extensions is: ")
-    pprint.pprint(extension_dict)
-    print()
-    print("The dictionary of files with their sizes is: ")
-    pprint.pprint(file_size_dict)
-
-    create_charts(dictionary_of_dir_files, extension_dict, file_size_dict)
+    page = Page()
+    page.add(create_chart_dir_files(dictionary_of_dir_files), create_chart_extension_dict(extension_dict),
+             create_chart_file_size_dict(file_size_dict))
+    page.render()
 
 
 if __name__ == '__main__':
