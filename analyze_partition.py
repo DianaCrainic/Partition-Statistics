@@ -30,8 +30,8 @@ def create_chart_file_size_dict(file_size_dict):
     labels = list(file_size_dict.keys())
     values = list(file_size_dict.values())
     chart = Bar("Bar chart")
-    chart.set_options(labels=labels, x_label="Extensions", y_label="counter")
-    chart.add_series("The number", values)
+    chart.set_options(labels=labels, x_label="Extensions", y_label="Sum of file sizes")
+    chart.add_series("The Sum of sizes", values)
     return chart
 
 
@@ -69,10 +69,8 @@ def print_extensions_info(extensions, extension_dict):
 def get_file_sizes(full_path, extension, file_size_dict):
     file_size = os.path.getsize(full_path)
     if extension not in file_size_dict.keys():
-        print("Extension {}, file_size {}".format(extension, file_size))
         file_size_dict[extension] = file_size
     else:
-        print("Extension {}, file_size {}".format(extension, file_size))
         file_size_dict[extension] += file_size
     return file_size_dict
 
@@ -82,7 +80,7 @@ def print_file_sizes_info(file_size_dict):
     pprint.pprint(file_size_dict)
 
 
-def convert_size(size_in_bytes):
+def convert_size_for_file(size_in_bytes):
     if size_in_bytes == 0:
         return "0 B"
     size_name = ("B", "KB", "MB", "GB", "TB")
