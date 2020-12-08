@@ -32,7 +32,7 @@ def create_chart_file_size_dict(file_size_dict):
     file_size_dict = dict(sorted(file_size_dict.items(), key=lambda item: item[1]))
     labels = list(file_size_dict.keys())
     values = list(file_size_dict.values())
-    chart = Bar("Bar chart")
+    chart = Bar("The chart for the distribution of file sizes of each extension")
     chart.set_options(labels=labels, x_label="Extensions", y_label="Sum of file sizes",
                       colors=['#1EAFAE' for _ in range(len(labels))])
     chart.add_series("The Sum of sizes", values)
